@@ -1,0 +1,58 @@
+{
+  "name": "nebula_formation",
+  "version": "1.0.0",
+  "description": "Volumetric rendering of interstellar gas clouds, star formation regions, and cosmic cathedral architecture",
+  "category": "cosmos/volumetric",
+  "tags": ["nebula", "astronomy", "volumetric", "raymarching", "star_formation", "cosmos", "space", "gas", "dust", "astrophysics"],
+  "primary_concepts": [
+    "Volumetric density field rendering",
+    "Emission/absorption/scattering physics",
+    "Star formation feedback loops",
+    "Turbulent gas dynamics",
+    "Hubble palette false-color astronomy",
+    "Supernova shock fronts",
+    "Molecular cloud structure"
+  ],
+  "blend_suggestions": [
+    "bioluminescent_systems",
+    "plasma_cosmology_vis",
+    "sacred_geometry",
+    "dream_physics",
+    "caustic_networks",
+    "alien_language"
+  ],
+  "code_templates": [
+    "code/basic_nebula.glsl",
+    "code/hubble_palette.glsl",
+    "code/dust_and_stars.glsl",
+    "code/supernova_shell.glsl",
+    "code/living_nebula.glsl",
+    "code/emotional_nebula.glsl",
+    "code/glitch_nebula.glsl"
+  ],
+  "parameter_space": {
+    "densityScale": {"type": "float", "range": [0.1, 5.0], "default": 1.0},
+    "turbulence": {"type": "float", "range": [0.0, 3.0], "default": 1.0},
+    "emissionStrength": {"type": "float", "range": [0.1, 5.0], "default": 1.0},
+    "dustOpacity": {"type": "float", "range": [0.0, 2.0], "default": 0.5},
+    "starCount": {"type": "int", "range": [0, 50], "default": 10},
+    "temperatureRange": {"type": "float", "range": [3000.0, 50000.0], "default": 10000.0},
+    "colorPalette": {"type": "enum", "options": ["hubble", "natural", "emotional", "surreal"], "default": "hubble"},
+    "evolutionSpeed": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+    "scale": {"type": "float", "range": [0.1, 10.0], "default": 1.0},
+    "glitchAmount": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+    "sacredOverlay": {"type": "float", "range": [0.0, 1.0], "default": 0.0}
+  },
+  "artistic_keywords": [
+    "Pillars of Creation",
+    "Hubble palette",
+    "star formation",
+    "cosmic cathedral",
+    "interstellar",
+    "volumetric",
+    "astrophysics",
+    "supernova",
+    "nebula",
+    "celestial"
+  ]
+}

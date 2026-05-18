@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nebula Formation — Interactive Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; color: #ccc; font-family: 'Courier New', monospace; overflow: hidden; }
+
+    #canvas-container { position: fixed; inset: 0; }
+    canvas { display: block; width: 100% !important; height: 100% !important; }
+
+    #ui {
+      position: fixed;
+      top: 16px; right: 16px;
+      width: 260px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      backdrop-filter: blur(4px);
+      z-index: 10;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+    }
+    #ui h1 { font-size: 14px; color: #fff; margin-bottom: 10px; letter-spacing: 0.05em; }
+    #ui h2 { font-size: 11px; color: #888; margin: 10px 0 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .preset-btn {
+      display: inline-block;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ccc;
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+    }
+    .preset-btn:hover, .preset-btn.active { background: rgba(255,255,255,0.18); color: #fff; }
+
+    .param-row { display: flex; align-items: center; margin: 5px 0; gap: 6px; }
+    .param-row label { flex: 0 0 120px; color: #aaa; }
+    .param-row input[type=range] { flex: 1; accent-color: #7ba; }
+    .param-row .val { flex: 0 0 36px; text-align: right; color: #fff; }
+
+    #fps { position: fixed; bottom: 12px; left: 14px; font-size: 11px; color: rgba(255,255,255,0.3); }
+    #info { position: fixed; bottom: 12px; right: 14px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: right; }
+  </style>
+</head>
+<body>
+<div id="canvas-container"><canvas id="c"></canvas></div>
+
+<div id="ui">
+  <h1>✦ NEBULA FORMATION</h1>
+
+  <h2>Shader Preset</h2>
+  <div id="preset-buttons">
+    <button class="preset-btn active" data-shader="basic">Basic</button>
+    <button class="preset-btn" data-shader="hubble">Hubble</button>
+    <button class="preset-btn" data-shader="dust">Dust+Stars</button>
+    <button class="preset-btn" data-shader="supernova">Supernova</button>
+    <button class="preset-btn" data-shader="living">Living</button>
+    <button class="preset-btn" data-shader="emotional">Emotional</button>
+    <button class="preset-btn" data-shader="sacred">Sacred</button>
+    <button class="preset-btn" data-shader="glitch">Glitch</button>
+  </div>
+
+  <h2>Parameters</h2>
+  <div class="param-row"><label>Density Scale</label><input type="range" id="densityScale" min="0.1" max="5" step="0.05" value="1.0"><span class="val" id="vDensityScale">1.0</span></div>
+  <div class="param-row"><label>Turbulence</label><input type="range" id="turbulence" min="0" max="3" step="0.05" value="1.0"><span class="val" id="vTurbulence">1.0</span></div>
+  <div class="param-row"><label>Emission</label><input type="range" id="emission" min="0.1" max="5" step="0.1" value="1.0"><span class="val" id="vEmission">1.0</span></div>
+  <div class="param-row"><label>Dust Opacity</label><input type="range" id="dustOpacity" min="0" max="2" step="0.05" value="0.5"><span class="val" id="vDustOpacity">0.5</span></div>
+  <div class="param-row"><label>Star Count</label><input type="range" id="starCount" min="0" max="50" step="1" value="10"><span class="val" id="vStarCount">10</span></div>
+  <div class="param-row"><label>Evolution</label><input type="range" id="evolutionSpeed" min="0" max="1" step="0.01" value="0.0"><span class="val" id="vEvolutionSpeed">0.0</span></div>
+  <div class="param-row"><label>Sacred Overlay</label><input type="range" id="sacredOverlay" min="0" max="1" step="0.01" value="0.0"><span class="val" id="vSacredOverlay">0.0</span></div>
+  <div class="param-row"><label>Glitch Amount</label><input type="range" id="glitchAmount" min="0" max="1" step="0.01" value="0.0"><span class="val" id="vGlitchAmount">0.0</span></div>
+  <div class="param-row"><label>Temperature (K)</label><input type="range" id="temperatureRange" min="3000" max="50000" step="500" value="10000"><span class="val" id="vTemperatureRange">10k</span></div>
+  <div class="param-row"><label>Time Speed</label><input type="range" id="timeSpeed" min="0" max="3" step="0.05" value="1.0"><span class="val" id="vTimeSpeed">1.0</span></div>
+
+  <h2>Controls</h2>
+  <div style="color:#666; font-size:11px; line-height:1.6;">
+    Mouse drag → orbit camera<br>
+    Scroll → zoom<br>
+    Shaders load from code/ directory<br>
+    (served via local dev server)
+  </div>
+</div>
+
+<div id="fps"></div>
+<div id="info">nebula_formation v1.0</div>
+
+<script type="module">
+// ─────────────────────────────────────────────────────────────────────────────
+// Minimal WebGL2 fullscreen quad renderer
+// Loads GLSL shaders from the code/ directory via fetch.
+// Run with: npx serve . (or any static file server)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+if (!gl) { alert('WebGL not supported'); }
+
+// ── Vertex shader (fullscreen quad) ──────────────────────────────────────────
+const VERT_SRC = `
+attribute vec2 aPos;
+void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
+`;
+
+// ── Quad geometry ─────────────────────────────────────────────────────────────
+const quadBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+
+// ── Shader compilation ────────────────────────────────────────────────────────
+function compileShader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+    console.error('Shader error:', gl.getShaderInfoLog(s));
+  return s;
+}
+
+function buildProgram(fragSrc) {
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, VERT_SRC));
+  gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, fragSrc));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+    console.error('Link error:', gl.getProgramInfoLog(prog));
+  return prog;
+}
+
+// ── Shader fetch ──────────────────────────────────────────────────────────────
+const SHADER_FILES = {
+  basic:     'code/basic_nebula.glsl',
+  hubble:    'code/hubble_palette.glsl',
+  dust:      'code/dust_and_stars.glsl',
+  supernova: 'code/supernova_shell.glsl',
+  living:    'code/living_nebula.glsl',
+  emotional: 'code/emotional_nebula.glsl',
+  sacred:    'code/sacred_nebula.glsl',
+  glitch:    'code/glitch_nebula.glsl',
+};
+
+// Fallback fragment shader (shown if file can't be fetched)
+const FALLBACK_FRAG = `
+precision mediump float;
+uniform vec2 uResolution;
+uniform float uTime;
+void main() {
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  gl_FragColor = vec4(uv.x*0.1, uv.y*0.2, 0.3+0.1*sin(uTime), 1.0);
+}`;
+
+let currentProgram = null;
+
+async function loadShader(key) {
+  const path = SHADER_FILES[key];
+  let src = FALLBACK_FRAG;
+  try {
+    const res = await fetch(path);
+    if (res.ok) {
+      src = await res.text();
+      // Inject precision if missing (some browsers require it)
+      if (!src.includes('precision')) {
+        src = '#ifdef GL_ES\nprecision highp float;\n#endif\n' + src;
+      }
+    } else {
+      console.warn(`Could not load ${path} — using fallback`);
+    }
+  } catch(e) {
+    console.warn(`Fetch failed for ${path}:`, e.message, '— using fallback');
+  }
+
+  if (currentProgram) { gl.deleteProgram(currentProgram); }
+  currentProgram = buildProgram(src);
+}
+
+// ── Parameter state ───────────────────────────────────────────────────────────
+const params = {
+  densityScale: 1.0,
+  turbulence: 1.0,
+  emission: 1.0,
+  dustOpacity: 0.5,
+  starCount: 10,
+  evolutionSpeed: 0.0,
+  sacredOverlay: 0.0,
+  glitchAmount: 0.0,
+  temperatureRange: 10000,
+  timeSpeed: 1.0,
+};
+
+// Wire up sliders
+function wireSlider(id, key, fmt) {
+  const el = document.getElementById(id);
+  const disp = document.getElementById('v' + id.charAt(0).toUpperCase() + id.slice(1));
+  el.addEventListener('input', () => {
+    params[key] = parseFloat(el.value);
+    disp.textContent = fmt ? fmt(params[key]) : params[key].toFixed(2);
+  });
+}
+wireSlider('densityScale', 'densityScale');
+wireSlider('turbulence', 'turbulence');
+wireSlider('emission', 'emission');
+wireSlider('dustOpacity', 'dustOpacity');
+wireSlider('starCount', 'starCount', v => Math.round(v));
+wireSlider('evolutionSpeed', 'evolutionSpeed');
+wireSlider('sacredOverlay', 'sacredOverlay');
+wireSlider('glitchAmount', 'glitchAmount');
+wireSlider('temperatureRange', 'temperatureRange', v => (v/1000).toFixed(0)+'k');
+wireSlider('timeSpeed', 'timeSpeed');
+
+// Preset buttons
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    await loadShader(btn.dataset.shader);
+  });
+});
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+function resize() {
+  canvas.width  = window.innerWidth  * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+let t = 0, lastFrame = performance.now(), frameCount = 0, fps = 0;
+
+function setUniform(prog, name, type, ...v) {
+  const loc = gl.getUniformLocation(prog, name);
+  if (loc === null) return;
+  gl[type](loc, ...v);
+}
+
+function render(now) {
+  requestAnimationFrame(render);
+  const dt = (now - lastFrame) / 1000;
+  lastFrame = now;
+  t += dt * params.timeSpeed;
+  frameCount++;
+  if (frameCount % 30 === 0) {
+    fps = Math.round(30 / (dt * 30 || 1));
+    document.getElementById('fps').textContent = fps + ' fps';
+  }
+
+  if (!currentProgram) return;
+  gl.useProgram(currentProgram);
+
+  // Uniforms
+  setUniform(currentProgram, 'uResolution',     'uniform2f',  canvas.width, canvas.height);
+  setUniform(currentProgram, 'uTime',           'uniform1f',  t);
+  setUniform(currentProgram, 'uDensityScale',   'uniform1f',  params.densityScale);
+  setUniform(currentProgram, 'uTurbulence',     'uniform1f',  params.turbulence);
+  setUniform(currentProgram, 'uEmission',       'uniform1f',  params.emission);
+  setUniform(currentProgram, 'uDustOpacity',    'uniform1f',  params.dustOpacity);
+  setUniform(currentProgram, 'uStarCount',      'uniform1i',  Math.round(params.starCount));
+  setUniform(currentProgram, 'uEvolutionSpeed', 'uniform1f',  params.evolutionSpeed);
+  setUniform(currentProgram, 'uSacredOverlay',  'uniform1f',  params.sacredOverlay);
+  setUniform(currentProgram, 'uGlitchAmount',   'uniform1f',  params.glitchAmount);
+  setUniform(currentProgram, 'uTemperatureRange','uniform1f', params.temperatureRange);
+
+  // Draw fullscreen quad
+  const posLoc = gl.getAttribLocation(currentProgram, 'aPos');
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+await loadShader('basic');
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
