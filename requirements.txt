@@ -1,0 +1,10 @@
+# nebula_formation — Python dependencies
+# Core (stdlib only for reference_calculations.py and stromgren_sphere.py)
+# Optional visualization
+matplotlib>=3.5.0
+numpy>=1.22.0
+# Optional FITS data processing
+astropy>=5.0
+# Optional image palette extraction
+Pillow>=9.0
+colorthief>=0.2.1
