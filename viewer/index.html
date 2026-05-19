@@ -67,6 +67,15 @@
     <button class="preset-btn" data-shader="emotional">Emotional</button>
     <button class="preset-btn" data-shader="sacred">Sacred</button>
     <button class="preset-btn" data-shader="glitch">Glitch</button>
+    <button class="preset-btn" data-shader="biological">Biological</button>
+    <button class="preset-btn" data-shader="reflection">Reflection</button>
+    <button class="preset-btn" data-shader="planetary">Planetary PN</button>
+    <button class="preset-btn" data-shader="dark">Dark Nebula</button>
+    <button class="preset-btn" data-shader="proplyd">Proplyd</button>
+    <button class="preset-btn" data-shader="quantum">Quantum</button>
+    <button class="preset-btn" data-shader="bipolar">Bipolar Jets</button>
+    <button class="preset-btn" data-shader="molecular">Mol. Cloud</button>
+    <button class="preset-btn" data-shader="filament">Filaments</button>
   </div>
 
   <h2>Parameters</h2>
@@ -91,7 +100,7 @@
 </div>
 
 <div id="fps"></div>
-<div id="info">nebula_formation v1.0</div>
+<div id="info">nebula_formation v2.0 — 17 shaders</div>
 
 <script type="module">
 // ─────────────────────────────────────────────────────────────────────────────
@@ -137,14 +146,23 @@ function buildProgram(fragSrc) {
 
 // ── Shader fetch ──────────────────────────────────────────────────────────────
 const SHADER_FILES = {
-  basic:     'code/basic_nebula.glsl',
-  hubble:    'code/hubble_palette.glsl',
-  dust:      'code/dust_and_stars.glsl',
-  supernova: 'code/supernova_shell.glsl',
-  living:    'code/living_nebula.glsl',
-  emotional: 'code/emotional_nebula.glsl',
-  sacred:    'code/sacred_nebula.glsl',
-  glitch:    'code/glitch_nebula.glsl',
+  basic:      'code/basic_nebula.glsl',
+  hubble:     'code/hubble_palette.glsl',
+  dust:       'code/dust_and_stars.glsl',
+  supernova:  'code/supernova_shell.glsl',
+  living:     'code/living_nebula.glsl',
+  emotional:  'code/emotional_nebula.glsl',
+  sacred:     'code/sacred_nebula.glsl',
+  glitch:     'code/glitch_nebula.glsl',
+  biological: 'code/biological_nebula.glsl',
+  reflection: 'code/reflection_nebula.glsl',
+  planetary:  'code/planetary_nebula.glsl',
+  dark:       'code/dark_nebula.glsl',
+  proplyd:    'code/proplyd.glsl',
+  quantum:    'code/quantum_nebula.glsl',
+  bipolar:    'code/bipolar_nebula.glsl',
+  molecular:  'code/molecular_cloud.glsl',
+  filament:   'code/filament_nebula.glsl',
 };
 
 // Fallback fragment shader (shown if file can't be fetched)
