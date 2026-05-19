@@ -37,7 +37,7 @@ import argparse
 # Physical constants
 # ─────────────────────────────────────────────────────────────────────────────
 k_B     = 1.381e-16    # erg/K
-h_plank = 6.626e-27    # erg·s
+h_plank = 6.626e-27    # erg·s  (h — Planck's constant)
 c_light = 2.998e10     # cm/s
 
 

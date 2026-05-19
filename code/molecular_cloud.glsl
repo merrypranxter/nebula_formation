@@ -62,8 +62,8 @@ float fbmKolmogorov(vec3 p, int octaves) {
         if(i>=octaves) break;
         v    += a * valueNoise(p*freq);
         norm += a;
-        a    *= 0.63;   // Kolmogorov: amplitude ∝ k^(-5/6) → per-octave 2^(-5/6) ≈ 0.55
-                         // Using 0.63 = 2^(-2/3) for H=1/3 (standard Kolmogorov)
+        a    *= 0.63;   // Kolmogorov: amplitude ∝ k^(-5/6) per octave
+                         // 2^(-2/3) ≈ 0.630 (H=1/3 Kolmogorov Hurst exponent)
         freq *= 2.0;
         p    += vec3(1.7, 9.2, 3.4);
     }
